@@ -283,7 +283,7 @@ router.patch('/validate', async (req, res) => {
 })
 
 
-// SEND PASSWORD RETRIEVE CODE
+// SEND PASSWORD RETRIEVE CODE ROUTE
 router.post('/sendcode', async (req, res) => {
 
     res.setHeader("Access-Control-Allow-Origin", "*")
@@ -326,6 +326,58 @@ router.post('/sendcode', async (req, res) => {
                 res.status(201).json({msg:`Código enviado para ${email}`})
             }
         })
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({msg: "Erro no servidor. Tente novamente, mais tarde!"})
+    }
+})
+
+
+// PASSWORD RESET ROUTE
+router.patch('/reset', async (req, res) => {
+
+    res.setHeader("Access-Control-Allow-Origin", "*")
+    res.setHeader("Access-Control-Allow-Methods", "PATCH")
+
+    const { email, retrieveCode, password, confirmPassword } = req.body
+
+    // validations
+    if (!password) {
+        return res.status(422).json({msg: "Você não digitou uma nova senha!"})
+    }
+
+    if (!confirmPassword) {
+        return res.status(422).json({msg: "Você não digitou a confirmação da nova senha!"})
+    }
+
+    if(password !== confirmPassword) {
+        return res.status(422).json({msg: "As senhas digitadas são diferentes entre si!"})
+    }
+
+    // find customer
+    const customer = await Customer.findOne({ email: email })
+
+    // check if the validate/retrieve code
+    if (retrieveCode !== customer.confirmationRetrieveCode) {
+        return res.status(422).json({msg: "O código digitado esta incorreto!"})
+    }
+
+    const saltt = await bcrypt.genSalt(12)
+    const newPasswordHash = await bcrypt.hash(password, saltt)
+
+    const retrievePasswordCode = []
+    for (var i=0; i<6; i++) {
+        let aleatorio = Math.floor(Math.random() * 10)
+        retrievePasswordCode.push(aleatorio)
+    }
+    const codigoString = `${retrievePasswordCode[0]}${retrievePasswordCode[1]}${retrievePasswordCode[2]}${retrievePasswordCode[3]}${retrievePasswordCode[4]}${retrievePasswordCode[5]}`
+
+    try {
+        const updatePassword = await Customer.findOneAndUpdate({email: email}, {password: newPasswordHash})
+        const updateCode = await Customer.findOneAndUpdate({email: email}, {confirmationRetrieveCode: codigoString })
+    
+        res.status(200).json({msg: "Senha redefinida com sucesso!"})
 
     } catch (error) {
         console.log(error)
