@@ -5,7 +5,6 @@ const mongoose = require('mongoose')
 
 const app = express()
 
-
 const cors = require('cors')
 
 // utilizar o cors
@@ -23,6 +22,12 @@ app.use(express.json())
 // rotas
 const customerRoutes = require('./routes/customerRoutes')
 app.use('/customer', customerRoutes)
+
+const clientUserRoutes = require('./routes/clientUsersRoutes')
+app.use('/clientuser', clientUserRoutes)
+
+const productRoutes = require('./routes/productRoutes')
+app.use('/product', productRoutes)
 
 // Rota inicial / endpoint
 app.get('/', (req, res) => {
@@ -47,11 +52,12 @@ mongoose
 // entregar uma porta
 app.listen(4000)
 
-
 /*
 Projeto NodeMailer
 https://console.cloud.google.com/apis/credentials?project=nodemailer-386913 
 
 Refresh Token
 https://developers.google.com/oauthplayground/?code=4/0AbUR2VN916R0hSPFV3nVWGTC_0ge53Wao298x-wHb587z-ChBmEmEG5asMEnznqlU6I9cA&scope=https://mail.google.com/
+
+https://developers.google.com/oauthplayground/?code=4/0AbUR2VNLibt89eWMm3Xbhplkz87slbdrlC1zCOEKuK8j6dpHDjq0B6Tw196VtxY8JLyw-w&scope=https://mail.google.com/
 */

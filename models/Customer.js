@@ -12,6 +12,7 @@ const Adress = new mongoose.Schema({
 })
 
 const Customer = mongoose.model('Customer',{
+    clientNumber: String,
     name: String,
     email: String,
     phoneWP: String,

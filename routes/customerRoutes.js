@@ -30,7 +30,7 @@ router.post('/register', async(req, res) => {
     res.setHeader("Access-Control-Allow-Origin", "*")
     res.setHeader("Access-Control-Allow-Methods", "POST")
 
-    const { firstName, lastName, email, phoneWP, phoneOther, street, number, complement, reference, neighborhood, city, state, postalCode, password, confirmPassword } = req.body
+    const { clientNumber, firstName, lastName, email, phoneWP, phoneOther, street, number, complement, reference, neighborhood, city, state, postalCode, password, confirmPassword } = req.body
 
     // validations
     if (!firstName) {
@@ -74,7 +74,13 @@ router.post('/register', async(req, res) => {
     }
 
     // check if customer exists
-    const customerExists = await Customer.findOne({ email: email})
+    const customerExists = await Customer.findOne({
+        $and:
+            [
+               { clientNumber : clientNumber },
+               { email: email }
+            ]
+      })
     
     if (customerExists && customerExists.emailConfirmation === true) {
         return res.status(422).json({ msg: "Já há um cliente registrado com este e-mail. Use outro endereço ou recupere a senha do e-mail tentado"})
@@ -127,6 +133,7 @@ router.post('/register', async(req, res) => {
 
     //create customer
     const customer = new Customer({
+        clientNumber,
         name,
         email,
         phoneWP,
@@ -180,8 +187,6 @@ router.post('/register', async(req, res) => {
         console.log(error)
         res.status(500).json({msg: "Erro no servidor. Tente novamente, mais tarde!"})
     }
-    
-    
 })
 
 
@@ -191,7 +196,7 @@ router.post('/login', async (req, res) => {
     res.setHeader("Access-Control-Allow-Origin", "*")
     res.setHeader("Access-Control-Allow-Methods", "POST")
 
-    const { email, password } = req.body
+    const { clientNumber, email, password } = req.body
 
     // validations
     if (!email) {
@@ -203,7 +208,13 @@ router.post('/login', async (req, res) => {
     }
 
     // check if customer exists
-    const customer = await Customer.findOne({ email: email })
+    const customer = await Customer.findOne({
+            $and:
+                [
+                   { clientNumber : clientNumber },
+                   { email: email }
+                ]
+          })
 
     if (!customer) {
         return res.status(404).json({ msg: "Não foi encontrado cliente com este endereço de e-mail!"})
@@ -243,7 +254,7 @@ router.patch('/validate', async (req, res) => {
     res.setHeader("Access-Control-Allow-Origin", "*")
     res.setHeader("Access-Control-Allow-Methods", "PATCH")
 
-    const { email, confirmationRetrieveCode } = req.body
+    const { clientNumber, email, confirmationRetrieveCode } = req.body
 
     // validations
     if (!confirmationRetrieveCode) {
@@ -251,7 +262,13 @@ router.patch('/validate', async (req, res) => {
     }
 
     // check if customer exists
-    const customer = await Customer.findOne({ email: email })
+    const customer = await Customer.findOne({
+        $and:
+            [
+               { clientNumber : clientNumber },
+               { email: email }
+            ]
+      })
     
     if (!customer) {
         return res.status(404).json({ msg: "Não foi encontrado cadastro de cliente com este endereço de e-mail!"})
@@ -270,8 +287,8 @@ router.patch('/validate', async (req, res) => {
     const codigoString = `${retrievePasswordCode[0]}${retrievePasswordCode[1]}${retrievePasswordCode[2]}${retrievePasswordCode[3]}${retrievePasswordCode[4]}${retrievePasswordCode[5]}`
 
     try {
-        const updateConfirmationRetrieveCode = await Customer.findOneAndUpdate({email: email}, {confirmationRetrieveCode: codigoString})
-        const updateEmailConfirmation = await Customer.findOneAndUpdate({email:email}, {emailConfirmation: true})
+        const updateConfirmationRetrieveCode = await Customer.findOneAndUpdate({$and:[{ clientNumber : clientNumber },{ email: email }]}, {confirmationRetrieveCode: codigoString})
+        const updateEmailConfirmation = await Customer.findOneAndUpdate({$and:[{ clientNumber : clientNumber },{ email: email }]}, {emailConfirmation: true})
     
         res.status(200).json({msg: "Cadastro validado com sucesso!"})
 
@@ -289,7 +306,7 @@ router.post('/sendcode', async (req, res) => {
     res.setHeader("Access-Control-Allow-Origin", "*")
     res.setHeader("Access-Control-Allow-Methods", "POST")
 
-    const { email } = req.body
+    const { clientNumber, email } = req.body
 
     // validations
     if (!email) {
@@ -297,7 +314,13 @@ router.post('/sendcode', async (req, res) => {
     }
 
     // check if customer exists
-    const customer = await Customer.findOne({ email: email })
+    const customer = await Customer.findOne({
+        $and:
+            [
+               { clientNumber : clientNumber },
+               { email: email }
+            ]
+      })
     
     if (!customer) {
         return res.status(404).json({ msg: "Não foi encontrado cadastro de cliente com este endereço de e-mail!"})
@@ -340,7 +363,7 @@ router.patch('/reset', async (req, res) => {
     res.setHeader("Access-Control-Allow-Origin", "*")
     res.setHeader("Access-Control-Allow-Methods", "PATCH")
 
-    const { email, retrieveCode, password, confirmPassword } = req.body
+    const { clientNumber, email, retrieveCode, password, confirmPassword } = req.body
 
     // validations
     if (!password) {
@@ -356,7 +379,13 @@ router.patch('/reset', async (req, res) => {
     }
 
     // find customer
-    const customer = await Customer.findOne({ email: email })
+    const customer = await Customer.findOne({
+        $and:
+            [
+               { clientNumber : clientNumber },
+               { email: email }
+            ]
+      })
 
     // check if the validate/retrieve code
     if (retrieveCode !== customer.confirmationRetrieveCode) {
@@ -374,8 +403,8 @@ router.patch('/reset', async (req, res) => {
     const codigoString = `${retrievePasswordCode[0]}${retrievePasswordCode[1]}${retrievePasswordCode[2]}${retrievePasswordCode[3]}${retrievePasswordCode[4]}${retrievePasswordCode[5]}`
 
     try {
-        const updatePassword = await Customer.findOneAndUpdate({email: email}, {password: newPasswordHash})
-        const updateCode = await Customer.findOneAndUpdate({email: email}, {confirmationRetrieveCode: codigoString })
+        const updatePassword = await Customer.findOneAndUpdate({$and:[{ clientNumber : clientNumber },{ email: email }]}, {password: newPasswordHash})
+        const updateCode = await Customer.findOneAndUpdate({$and:[{ clientNumber : clientNumber },{ email: email }]}, {confirmationRetrieveCode: codigoString })
     
         res.status(200).json({msg: "Senha redefinida com sucesso!"})
 
