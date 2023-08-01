@@ -13,7 +13,8 @@ const Product = mongoose.model('Product',{
     promotionInitialDate: Date,
     promotionFinalDate: Date,
     image: String,
-    promotionImage: String
+    promotionImage: String,
+    thereIs: Boolean
 })
 
 module.exports = Product

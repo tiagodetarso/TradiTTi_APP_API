@@ -29,6 +29,9 @@ app.use('/clientuser', clientUserRoutes)
 const productRoutes = require('./routes/productRoutes')
 app.use('/product', productRoutes)
 
+const clientRoutes = require('./routes/clientRoutes')
+app.use('/client', clientRoutes)
+
 // Rota inicial / endpoint
 app.get('/', (req, res) => {
     res.status(200).json({msg: "API TradiTTio App!"})

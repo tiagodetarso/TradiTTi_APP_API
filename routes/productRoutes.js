@@ -63,7 +63,8 @@ router.post('/register', async(req, res) => {
         promotionInitialDate: dataInicial,
         promotionFinalDate: dataInicial,
         image:"",
-        promotionImage:""
+        promotionImage:"",
+        thereIs: false
     })
 
     //save new clientUser
@@ -117,6 +118,25 @@ router.patch('/edit', async(req, res) => {
     }
 })
 
+// EDIT PRODUCT ROUTE
+router.patch('/editthereis', async(req, res) => {
+
+    res.setHeader("Access-Control-Allow-Origin", "*")
+    res.setHeader("Access-Control-Allow-Methods", "PATCH")
+
+    const {id, thereIs } = req.body
+
+    //save changes
+    try {
+        const updateProduct = await Product.findOneAndUpdate({_id: id}, {thereIs:!thereIs})
+        res.status(200).json({msg:`Produto alterado com sucesso!`})
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({msg: "Erro no servidor. Tente novamente, mais tarde!"})
+    }
+})
+
 // EDIT PRODUCT IMAGE ROUTE
 router.patch('/imageedit', async(req, res) => {
 
@@ -147,7 +167,7 @@ router.patch('/imageedit', async(req, res) => {
     }
 })
 
-// PRODUCT SEARCH ROUTE
+// PRODUCT LIST ROUTE
 router.post('/list', async (req, res) => {
 
     res.setHeader("Access-Control-Allow-Origin", "*")
@@ -156,7 +176,30 @@ router.post('/list', async (req, res) => {
     const { clientNumber } = req.body
 
     try {
-        var product = await Product.find({clientNumber: clientNumber}, '-promotionValue -fixPromotionDay -promotionInitialDate -promotionFinalDate -promotionImage')
+        var product = await Product.find({clientNumber: clientNumber}, '-promotionValue -fixPromotionDay -promotionInitialDate -promotionFinalDate -promotionImage').sort({type:1, subType:1, unity:1, specification:1})
+    } catch (error) {
+        res.status(500).json({msg: "Erro no servidor. Tente novamente, mais tarde!"})
+    } 
+
+    if (!product) {
+        res.status(404).json({ msg: "Nenhuma equivalência foi encontrada" })
+    } else {
+        res.status(200).json({msg: "Pesquisa bem sucedida!", content: product})
+    }     
+})
+
+// PRODUCT SEARCH ROUTE
+router.post('/search', async (req, res) => {
+
+    res.setHeader("Access-Control-Allow-Origin", "*")
+    res.setHeader("Access-Control-Allow-Methods", "POST")
+
+    const { clientNumber, specification } = req.body
+
+    try {
+        var product = await Product.find({$and:
+            [{clientNumber: clientNumber}, {specification: specification}]}, 
+            '-promotionValue -fixPromotionDay -promotionInitialDate -promotionFinalDate -promotionImage')
     } catch (error) {
         res.status(500).json({msg: "Erro no servidor. Tente novamente, mais tarde!"})
     } 
@@ -243,7 +286,6 @@ router.patch('/promotionregister', async(req, res) => {
                 promotionFinalDate: promotionFinalDate 
             }
         )
-        console.log(updatePromotion)
         res.status(200).json({msg:`Promoção cadastrada com sucesso!`})
     } catch (error) {
         console.log(error)
@@ -412,5 +454,83 @@ router.patch('/promotionimageedit', async(req, res) => {
     }
 })
 
+// PRODUCT SEARCH ROUTE FOR MOBILE LIST
+router.post('/mobilelist', async (req, res) => {
+
+    res.setHeader("Access-Control-Allow-Origin", "*")
+    res.setHeader("Access-Control-Allow-Methods", "POST")
+
+    const { clientNumber } = req.body
+
+    try {
+        var product = await Product.find({$and:[{clientNumber: clientNumber}, {thereIs:true}, {subType: {$ne: 'adicional es'}}, {subType: {$ne: 'adicional ed'}},{subType: {$ne: 'adicional pd'}}]}, '-image -promotionImage').sort({type:-1, subType:1, unity:1, specification:1})
+
+        let thereIs = false
+        var arrangedData = []
+        let productData = []
+        let titles = []
+        for (const element of product) {
+            for (let i=0; i < titles.length; i++) {
+                if (element.subType === titles[i]) {
+                    thereIs = true
+                }
+            }
+            if (thereIs === false) {
+                titles.push(element.subType)
+            } else {
+                thereIs = false
+            }
+            productData.push(element)
+        }
+        
+        for (let i=0; i<titles.length; i++) {
+            let titulo = titles[i]
+            let dados = []
+
+            for (product of productData) {
+                if (product.subType === titulo) {
+                    dados.push(product)
+                }
+            }
+            arrangedData.push({title: titulo, data: dados})
+        }
+
+    } catch (error) {
+        res.status(500).json({msg: "Erro no servidor. Tente novamente, mais tarde!"})
+    } 
+
+    if (!product) {
+        res.status(404).json({ msg: "Nenhuma equivalência foi encontrada" })
+    } else {
+        res.status(200).json({msg: "Pesquisa bem sucedida!", content: arrangedData})
+    }     
+})
+
+// EDIT PRODUCT IMAGE ROUTE
+router.post('/image', async(req, res) => {
+
+    res.setHeader("Access-Control-Allow-Origin", "*")
+    res.setHeader("Access-Control-Allow-Methods", "POST")
+
+    const { id } = req.body
+
+    // validations
+    if (!id) {
+        return res.status(422).json({msg: "Nenhum produto foi selecionado"})
+    }
+
+    try {
+        var product = await Product.find({_id: id})
+        var image = product[0].image
+    } catch (error) {
+        res.status(500).json({msg: "Erro no servidor. Tente novamente, mais tarde!"})
+    } 
+
+    if (!product) {
+        res.status(404).json({ msg: "Nenhuma equivalência foi encontrada" })
+    } else {
+        res.status(200).json({msg: "Pesquisa bem sucedida!", content: image})
+    }
+})
 
 module.exports = router

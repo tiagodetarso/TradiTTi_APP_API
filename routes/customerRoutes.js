@@ -57,6 +57,10 @@ router.post('/register', async(req, res) => {
         return res.status(422).json({msg: "O preenchimento do número da casa ou edifício é obrigatório!"})
     }
 
+    if (!neighborhood) {
+        return res.status(422).json({msg: "A escolha de um bairro ou distrito é obrigatória!"})
+    }
+
     if (!city) {
         return res.status(422).json({msg: "O preenchimento do nome da cidade é obrigatório!"})
     }
@@ -67,6 +71,10 @@ router.post('/register', async(req, res) => {
 
     if (!password) {
         return res.status(422).json({msg: "Você precisa definir uma senha!"})
+    }
+
+    if (password.length < 4) {
+        return res.status(422).json({msg: "Sua senha precisa ter, no mínimo, 4 caracteres"})
     }
 
     if (password !== confirmPassword) {
@@ -238,6 +246,7 @@ router.post('/login', async (req, res) => {
                 name: customer.name,
                 email: customer.email,
                 adress: customer.adress,
+                phoneWP: customer.phoneWP
             }
         res.status(200).json({msg: "Login realizado com sucesso", content})
 
