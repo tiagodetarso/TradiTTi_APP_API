@@ -41,7 +41,7 @@ router.post('/register', async(req, res) => {
         deliveryGap: "",
         pickupGap: "",
         deliveryFee: {
-            "NÃO MORO EM ASTORGA": 0,
+            "FORA DE ASTORGA": 0,
             "CENTRO": 0,
             "CJ ALVORADA": 0,
             "CJ ANTONIO LOURENÇO I": 0,
@@ -106,7 +106,8 @@ router.post('/register', async(req, res) => {
             "VL RIOS": 0,
             "VL SAMUEL": 0,
             "VL TREVISAN": 0,
-            "VL ZANIN": 0
+            "VL ZANIN": 0,
+            "--------": 0
         }
     })
 

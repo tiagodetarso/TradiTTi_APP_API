@@ -506,6 +506,28 @@ router.post('/mobilelist', async (req, res) => {
     }     
 })
 
+// EXTRA SEARCH ROUTE FOR MOBILE LIST
+router.post('/extralist', async (req, res) => {
+
+    res.setHeader("Access-Control-Allow-Origin", "*")
+    res.setHeader("Access-Control-Allow-Methods", "POST")
+
+    const { clientNumber, subType } = req.body
+
+    try {
+        var product = await Product.find({$and:[{clientNumber: clientNumber}, {thereIs:true}, {subType: subType}]}, '-image -promotionImage').sort({specification:1})
+
+    } catch (error) {
+        res.status(500).json({msg: "Erro no servidor. Tente novamente, mais tarde!"})
+    } 
+
+    if (!product) {
+        res.status(404).json({ msg: "Nenhuma equivalência foi encontrada" })
+    } else {
+        res.status(200).json({msg: "Pesquisa bem sucedida!", content: product})
+    }     
+})
+
 // EDIT PRODUCT IMAGE ROUTE
 router.post('/image', async(req, res) => {
 
@@ -531,6 +553,27 @@ router.post('/image', async(req, res) => {
     } else {
         res.status(200).json({msg: "Pesquisa bem sucedida!", content: image})
     }
+})
+
+// COMBO MISTO LIST ROUTE
+router.post('/combomistolist', async (req, res) => {
+
+    res.setHeader("Access-Control-Allow-Origin", "*")
+    res.setHeader("Access-Control-Allow-Methods", "POST")
+
+    const { clientNumber, subType1, subType2 } = req.body
+
+    try {
+        var product = await Product.find({$and:[{clientNumber: clientNumber}, {subType:[subType1, subType2]}, {specification: {$ne: 'carne'}}]}, 'specification').sort({subType:1, specification:1})
+    } catch (error) {
+        return res.status(500).json({msg: "Erro no servidor. Tente novamente, mais tarde!"})
+    } 
+    if (!product) {
+        return res.status(404).json({ msg: "Nenhuma equivalência foi encontrada" })
+
+    } else {
+        return res.status(200).json({msg: "Pesquisa bem sucedida!", content: product})
+    }     
 })
 
 module.exports = router
