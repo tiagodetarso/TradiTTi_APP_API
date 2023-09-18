@@ -330,7 +330,6 @@ router.post('/promotionlist', async (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "POST")
 
     const { clientNumber } = req.body
-
     const agora = new Date()
 
     try {

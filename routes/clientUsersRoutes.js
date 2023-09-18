@@ -2,27 +2,47 @@ const router = require('express').Router()
 const bcrypt = require('bcrypt')
 
 const ClientUser = require('../models/ClientUser')
+const Token = require('../models/Token')
 
 const nodemailer = require('nodemailer')
+const { VirtualType } = require('mongoose')
 
 //nodemailer parameters
 const user = process.env.NODEMAILER_USER_MAIL
 const pass = process.env.NODEMAILER_PASSWORD
 const clientId = process.env.NODEMAILER_CLIENT_ID
 const clientSecret = process.env.NODEMAILER_CLIENT_SECRET
-const refreshToken = process.env.NODEMAILER_REFRESH_TOKEN
+var token = ""
+var transporter
 
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        type: 'OAuth2',
-        user: user,
-        pass: pass,
-        clientId: clientId,
-        clientSecret: clientSecret,
-        refreshToken: refreshToken
+async function RefreshToken() {
+    try {
+       const refreshToken0001 = await Token.findOne({ clientNumber: "0001" })
+       return refreshToken0001
+    } catch (error) {
+       console.error("Erro ao buscar o token:", error)
     }
-})
+}
+
+function NewToken () {
+(async () => {
+    token = await RefreshToken()
+
+    transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+            type: 'OAuth2',
+            user: user,
+            pass: pass,
+            clientId: clientId,
+            clientSecret: clientSecret,
+            refreshToken: token.refreshToken
+        }
+    })
+ })()}
+
+ NewToken()
+ setInterval(NewToken, 60*60*1000)
 
 // CLIENTUSER LOGIN ROUTE
 router.post('/login', async (req, res) => {
@@ -153,7 +173,7 @@ router.post('/userregister', async(req, res) => {
     }
 })
 
-// SEND PASSWORD RETRIEVE CODE ROUTE
+// SEND PASSWORD RETRIEVE CODE ROUTE (usa o nodemailer)
 router.post('/retrievepass', async (req, res) => {
 
     res.setHeader("Access-Control-Allow-Origin", "*")

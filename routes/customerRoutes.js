@@ -24,7 +24,7 @@ const transporter = nodemailer.createTransport({
     }
 })
 
-// CUSTOMER REGISTER ROUTE
+// CUSTOMER REGISTER ROUTE (usa o nodemailer)
 router.post('/register', async(req, res) => {
 
     res.setHeader("Access-Control-Allow-Origin", "*")
@@ -309,7 +309,7 @@ router.patch('/validate', async (req, res) => {
 })
 
 
-// SEND PASSWORD RETRIEVE CODE ROUTE
+// SEND PASSWORD RETRIEVE CODE ROUTE (usa o nodemailer)
 router.post('/sendcode', async (req, res) => {
 
     res.setHeader("Access-Control-Allow-Origin", "*")

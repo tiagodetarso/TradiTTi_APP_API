@@ -351,5 +351,4 @@ router.post('/getdeliveryfee', async(req, res) => {
     }
 })
 
-
 module.exports = router
