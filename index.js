@@ -47,10 +47,10 @@ mongoose
         )
     .then(() => {
         console.log('Conectado ao banco de dados')
-        app.listen(4500)
+        app.listen(process.env.MONGO_PORT || 4500)
     })
     .catch((err) => console.log(err))
 
 
 // entregar uma porta
-app.listen(4000)
+app.listen(process.env.CLIENT_PORT || 4000)
