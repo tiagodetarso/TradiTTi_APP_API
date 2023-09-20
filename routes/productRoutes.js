@@ -563,7 +563,14 @@ router.post('/combomistolist', async (req, res) => {
     const { clientNumber, subType1, subType2 } = req.body
 
     try {
-        var product = await Product.find({$and:[{clientNumber: clientNumber}, {subType:[subType1, subType2]}, {specification: {$ne: 'carne'}}]}, 'specification').sort({subType:1, specification:1})
+        var product = await Product.find({$and:
+            [
+                {clientNumber: clientNumber},
+                {thereIs: true},
+                {subType:[subType1, subType2]},
+                {specification: {$ne: 'carne'}}
+            ]
+        }, 'specification').sort({subType:1, specification:1})
     } catch (error) {
         return res.status(500).json({msg: "Erro no servidor. Tente novamente, mais tarde!"})
     } 
@@ -574,5 +581,65 @@ router.post('/combomistolist', async (req, res) => {
         return res.status(200).json({msg: "Pesquisa bem sucedida!", content: product})
     }     
 })
+
+// COMBO DIVERSO LIST ROUTE
+router.post('/combodiversolist', async (req, res) => {
+
+    res.setHeader("Access-Control-Allow-Origin", "*")
+    res.setHeader("Access-Control-Allow-Methods", "POST")
+
+    const { clientNumber, subType } = req.body
+
+    try {
+        var product = await Product.find({
+                clientNumber: clientNumber,
+                thereIs: true,
+                subType:subType,
+                specification: {$nin: ['atum', 
+                                    'portuguesa', 
+                                    'carne com cream cheese', 
+                                    'tomate seco',
+                                    'carne',
+                                    'rúcula com bacon',
+                                    'brócolis com bacon'
+                                ]}
+        }, 'specification').sort({subType:1, specification:1})
+    } catch (error) {
+        return res.status(500).json({msg: "Erro no servidor. Tente novamente, mais tarde!"})
+    } 
+    if (!product) {
+        return res.status(404).json({ msg: "Nenhuma equivalência foi encontrada" })
+
+    } else {
+        return res.status(200).json({msg: "Pesquisa bem sucedida!", content: product})
+    }     
+})
+
+// COMBO ESPECIAL LIST ROUTE
+router.post('/comboespeciallist', async (req, res) => {
+
+    res.setHeader("Access-Control-Allow-Origin", "*")
+    res.setHeader("Access-Control-Allow-Methods", "POST")
+
+    const { clientNumber, subType } = req.body
+
+    try {
+        var product = await Product.find({
+                clientNumber: clientNumber,
+                thereIs: true,
+                subType:subType,
+                specification: {$in: ['atum', 'portuguesa', 'carne com cream cheese', 'tomate seco']}
+        }, 'specification').sort({subType:1, specification:1})
+    } catch (error) {
+        return res.status(500).json({msg: "Erro no servidor. Tente novamente, mais tarde!"})
+    } 
+    if (!product) {
+        return res.status(404).json({ msg: "Nenhuma equivalência foi encontrada" })
+
+    } else {
+        return res.status(200).json({msg: "Pesquisa bem sucedida!", content: product})
+    }     
+})
+
 
 module.exports = router
